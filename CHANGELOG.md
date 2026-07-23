@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2
+
+- Hard audit time budget (120s default). A store that slow-walks connections (bot-mitigation tarpits) now produces a partial report with skipped checks marked "not assessed" and a warning, instead of hanging the caller indefinitely.
+
 ## 0.1.1
 
 - Agent output now groups findings by category and carries explicit presentation guidance, so assistants render the full structured report (and never add scores or unmeasured claims of their own).

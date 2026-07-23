@@ -22,8 +22,12 @@ export interface RunOptions {
   sampleSize?: number;
   only?: string;
   timeoutMs?: number;
+  /** Hard ceiling on total audit wall time. A partial report beats a hang. */
+  budgetMs?: number;
   now?: () => string;
 }
+
+const DEFAULT_BUDGET_MS = 120_000;
 
 export async function runAudit(domain: string, opts: RunOptions = {}): Promise<AuditReport> {
   const clean = domain.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
@@ -57,12 +61,32 @@ export async function runAudit(domain: string, opts: RunOptions = {}): Promise<A
 
   const selected = opts.only ? active.filter((c) => c.id === opts.only) : active;
 
+  // Hard wall-time ceiling. A store that slow-walks connections (bot
+  // mitigation tarpits especially) must produce a partial report with a
+  // warning, never an audit that hangs its caller.
+  const deadline = Date.now() + (opts.budgetMs ?? DEFAULT_BUDGET_MS);
+  let budgetHit = false;
+
   const findings: Finding[] = [];
   for (const check of selected) {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) {
+      budgetHit = true;
+      findings.push(skipped(check, now(), 'the audit time budget was reached before this check could run'));
+      continue;
+    }
     try {
-      const out = await check.run(ctx);
+      const out = await Promise.race([
+        check.run(ctx),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('BUDGET')), remaining).unref?.()),
+      ]);
       findings.push(...(Array.isArray(out) ? out : [out]));
     } catch (err) {
+      if (err instanceof Error && err.message === 'BUDGET') {
+        budgetHit = true;
+        findings.push(skipped(check, now(), 'the audit time budget ran out while this check was waiting on the store'));
+        continue;
+      }
       findings.push({
         id: check.id,
         category: check.category,
@@ -76,10 +100,13 @@ export async function runAudit(domain: string, opts: RunOptions = {}): Promise<A
       });
     }
   }
+  if (budgetHit) {
+    warnings.push('The store responded slowly and the audit hit its time budget; some checks were skipped and are marked "not assessed". Re-run later for a complete picture.');
+  }
 
   return {
     schemaVersion: 1,
-    tool: { name: 'storefront-agent-audit', version: '0.1.1' },
+    tool: { name: 'storefront-agent-audit', version: '0.1.2' },
     domain: clean,
     startedAt,
     finishedAt: now(),
@@ -94,6 +121,20 @@ export async function runAudit(domain: string, opts: RunOptions = {}): Promise<A
     summary: buildSummary(findings),
     categories: buildRollups(findings),
     findings,
+  };
+}
+
+function skipped(check: Check, fetchedAt: string, reason: string): Finding {
+  return {
+    id: check.id,
+    category: check.category,
+    tags: [],
+    status: 'info',
+    title: check.title,
+    narrative: `Not assessed: ${reason}.`,
+    evidence: {},
+    references: [],
+    fetchedAt,
   };
 }
 

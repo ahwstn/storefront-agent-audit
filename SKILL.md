@@ -1,7 +1,7 @@
 ---
 name: storefront-agent-audit
 description: Audit what AI shopping agents can see on a Shopify storefront. Use when a user asks whether their store (or any Shopify store) is visible to, readable by, or ready for AI shopping assistants, agentic commerce, ChatGPT/Gemini shopping, or "GEO/AEO". Runs read-only against public endpoints.
-version: 0.1.1
+version: 0.1.2
 ---
 
 # storefront-agent-audit
