@@ -14,7 +14,7 @@ import type { AuditReport } from './core/types.js';
  * diagnostics go to stderr.
  */
 
-const server = new McpServer({ name: 'storefront-agent-audit', version: '0.1.0' });
+const server = new McpServer({ name: 'storefront-agent-audit', version: '0.1.1' });
 
 const findingSchema = {
   id: z.string(),

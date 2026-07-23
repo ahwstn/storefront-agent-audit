@@ -1,12 +1,12 @@
 ---
 name: storefront-agent-audit
 description: Audit what AI shopping agents can see on a Shopify storefront. Use when a user asks whether their store (or any Shopify store) is visible to, readable by, or ready for AI shopping assistants, agentic commerce, ChatGPT/Gemini shopping, or "GEO/AEO". Runs read-only against public endpoints.
-version: 0.1.0
+version: 0.1.1
 ---
 
 # storefront-agent-audit
 
-This skill describes v0.1.0 only. Behaviour and output may change in later versions; do not assume forward compatibility.
+This skill describes v0.1.x only. Behaviour and output may change in later versions; do not assume forward compatibility.
 
 ## What it does
 
@@ -31,6 +31,12 @@ Always use `--agent` when running on a user's behalf: it emits compact, findings
 - Respect the caveats. In particular: this measures the HTTP layer only (Googlebot and agentic browsers render JavaScript); product sampling is the newest-N window, not the whole catalogue; `info` findings (UA differences, bot-challenge, headless-shell signals) are diagnostics, not verdicts.
 - If the tool warns about a cross-host redirect or a likely headless shell, tell the user the real storefront may be on another domain and offer to re-run there.
 - The header states which **market variant** was audited (locale/currency) and how many others exist. Findings describe that market only. If the user shops a different market (e.g. they are in the UK but the bare domain served the US storefront), offer to re-run against their market's domain.
+
+## Presenting the results
+
+- Render the audit as a full structured report: a section per category, every finding included with its status and narrative. The user asked for an audit; a two-line summary undersells a real measurement.
+- Present only what the tool measured. Do not add scores, star ratings, percentages, or verdicts about areas the tool did not check. An attractive number with no measurement behind it is the exact failure mode this tool exists to catch.
+- Keep caveats attached to their findings; they are part of the result, not disclaimers to trim.
 
 ## What not to do
 

@@ -1,6 +1,11 @@
 # Changelog
 
-## 0.1.0 (unreleased)
+## 0.1.1
+
+- Agent output now groups findings by category and carries explicit presentation guidance, so assistants render the full structured report (and never add scores or unmeasured claims of their own).
+- README: new section on why an AI-written audit is not a measurement, and how the two combine.
+
+## 0.1.0
 
 First release.
 

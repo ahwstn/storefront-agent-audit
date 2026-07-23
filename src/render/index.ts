@@ -59,17 +59,20 @@ export function renderAgent(report: AuditReport): string {
   out.push(s.headline);
   if (s.topActions.length) { out.push(''); out.push('Top actions:'); for (const a of s.topActions) out.push(`- ${a}`); }
   out.push('');
-  out.push('## Category verdicts');
-  for (const cat of report.categories) out.push(`- ${CAT_LABEL[cat.category] ?? cat.category}: ${cat.status.toUpperCase()} (${cat.counts.fail} fail, ${cat.counts.warn} warn, ${cat.counts.pass} pass)`);
-  out.push('');
-  out.push('## Findings');
-  for (const f of report.findings) {
-    out.push(`- [${f.status.toUpperCase()}] ${f.title}: ${f.narrative}${f.remediation ? ` Fix: ${f.remediation}` : ''}`);
+  for (const cat of report.categories) {
+    const label = CAT_LABEL[cat.category] ?? cat.category;
+    out.push(`## ${label}: ${cat.status.toUpperCase()} (${cat.counts.fail} fail, ${cat.counts.warn} warn, ${cat.counts.pass} pass)`);
+    for (const f of report.findings.filter((x) => x.category === cat.category)) {
+      out.push(`- [${f.status.toUpperCase()}] ${f.title}: ${f.narrative}${f.remediation ? ` Fix: ${f.remediation}` : ''}${f.caveat ? ` (Caveat: ${f.caveat})` : ''}`);
+    }
+    out.push('');
   }
-  out.push('');
-  out.push('## Suggested next steps for the user');
-  out.push('- Ask me to explain any finding, or to draft the fixes in priority order.');
-  out.push('- Findings reflect the HTTP layer on the date shown; re-run to confirm changes.');
+  out.push('## Presenting this to the user');
+  out.push('- Render a full structured report (a section per category, every finding included), not a compressed summary; the user asked for an audit, so give them the audit.');
+  out.push('- Everything above is a real measurement from the fetch layer on the date shown. Present ONLY these findings; do not add scores, ratings, percentages or verdicts of your own, and do not speculate about areas not measured here.');
+  out.push('- Do not invent an overall score; the tool deliberately has none. If asked for one, explain that unmeasured scores are the failure mode this audit avoids.');
+  out.push('- Keep each caveat attached to its finding; they are part of the result.');
+  out.push('- Close by offering to explain findings or draft the fixes in priority order (fails first, then warns).');
   return out.join('\n');
 }
 

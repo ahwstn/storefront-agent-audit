@@ -20,6 +20,14 @@ This is also the direction the platforms themselves are heading. Shopify's agent
 
 It is deliberately **not** a general SEO or performance auditor; it looks at one thing (agent-readiness) and tries to do it honestly.
 
+## Why not just ask a chatbot to audit your store?
+
+Try it, and read the result carefully. What comes back is usually an attractive, structured report, with scores out of 100, star ratings and confident verdicts. Then look for the measurements behind it. In our testing, AI-written audits scored areas they admitted in the same paragraph they had not checked, described "likely" markup no request was ever made for, and in one case confidently reported a store *lacked* agent-commerce infrastructure that was demonstrably live (a working MCP endpoint and published UCP manifest, verified by this tool the same afternoon). Ask again tomorrow and the score changes; nothing was measured, so nothing is reproducible.
+
+This tool is the other half of that equation. It makes real HTTP requests and reports only what came back: `49 of the newest 50 products have no description`, `0 of 8 sampled pages carry a SKU in their structured data`, `20% of results honoured a structured price filter`, each with the evidence and the fetch date attached, and the same store gets the same reading tomorrow. It deliberately emits **no overall score**, because a score without a measurement behind it is exactly the failure mode it exists to catch.
+
+The two combine well: run the instrument, then let your assistant present and prioritise the findings. Prose on top of measurements is easy. Measurements underneath prose are impossible without the instrument.
+
 ## Run it with your AI assistant
 
 The primary way to use this is through an agent. Tell your assistant:

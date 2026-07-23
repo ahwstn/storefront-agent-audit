@@ -79,7 +79,7 @@ export async function runAudit(domain: string, opts: RunOptions = {}): Promise<A
 
   return {
     schemaVersion: 1,
-    tool: { name: 'storefront-agent-audit', version: '0.1.0' },
+    tool: { name: 'storefront-agent-audit', version: '0.1.1' },
     domain: clean,
     startedAt,
     finishedAt: now(),
