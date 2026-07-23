@@ -16,6 +16,8 @@ AI shopping assistants are starting to send real, high-intent shoppers to stores
 
 This tool checks that layer. It is deliberately **not** a general SEO or performance auditor; it looks at one thing (agent-readiness) and tries to do it honestly.
 
+And it does something a person reading your HTML cannot: it **shops your store as an agent would.** It runs a real budget query through your store's own agent search endpoint and checks whether the results actually honour it, because "you have trainers under £100, but an AI assistant searching for them gets shown £120 ones" is the kind of gap that quietly loses sales, and it is invisible from the outside.
+
 ## Run it with your AI assistant
 
 The primary way to use this is through an agent. Tell your assistant:
@@ -28,7 +30,7 @@ The `--agent` flag emits compact, findings-first markdown written to be read str
 
 Grouped by what each finding means for you:
 
-- **Findable** — can agents reach and discover you: `llms.txt` / `agents.md` (present, default, or customised, and if customised, whether it is any good), robots.txt rules parsed *per AI crawler* against product paths (not just mentions).
+- **Findable** — can agents reach and discover you: `llms.txt` / `agents.md` (present, default, or customised, and if customised, whether it is any good), robots.txt rules parsed *per AI crawler* against product paths (not just mentions), and a live **retrieval-quality test** that runs a real budget query through your store's own agent search and grades whether the results honour it.
 - **Understandable** — can agents parse your products: description completeness across a sampled catalogue window, JavaScript-off content across several product pages, JSON-LD structured-data field completeness (handles `@graph` nesting).
 - **Trustworthy** — will agents recommend you: published policy pages, errors visible in served markup.
 - **Actionable** — can agents connect to transact: storefront MCP endpoint, UCP manifest. *(Connectivity only; not proof a checkout completes.)*

@@ -8,9 +8,10 @@ import { pdpCheck } from '../checks/universal/pdp.js';
 import { productsCheck } from '../checks/shopify/products.js';
 import { endpointsCheck } from '../checks/shopify/endpoints.js';
 import { policiesCheck } from '../checks/shopify/policies.js';
+import { retrievalCheck } from '../checks/shopify/retrieval.js';
 
 const UNIVERSAL: Check[] = [discoveryCheck, robotsCheck, pdpCheck];
-const SHOPIFY: Check[] = [productsCheck, endpointsCheck, policiesCheck];
+const SHOPIFY: Check[] = [productsCheck, endpointsCheck, policiesCheck, retrievalCheck];
 
 const CATEGORY_ORDER: Category[] = ['findable', 'understandable', 'trustworthy', 'actionable'];
 const RANK: Record<Status, number> = { pass: 0, info: 0, warn: 1, fail: 2 };
