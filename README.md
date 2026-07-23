@@ -8,19 +8,7 @@ Agent-first by design: you can run it yourself, or ask your AI assistant to run 
 npx storefront-agent-audit yourstore.com
 ```
 
-```
-storefront-agent-audit 0.1.0 · yourstore.com · 2026-07-23
-HTTP fetch layer only: what non-rendering AI crawlers receive.
-
-  ! FINDABLE        room to improve
-      ! llms.txt / agents.md is present but Shopify's auto-generated default
-      ✓ All major AI crawlers allowed to reach product pages
-  ✗ UNDERSTANDABLE  needs work
-      ✗ 49 of the newest 50 products have no description at all
-      ! Structured data: 4 of 8 pages have a description, 0 have a product code
-  ✓ TRUSTWORTHY     looking good
-  ✓ ACTIONABLE      looking good
-```
+![Example output: auditing a real Shopify store](docs/media/terminal.svg)
 
 ## Why this exists
 
