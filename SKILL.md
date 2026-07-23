@@ -10,7 +10,7 @@ This skill describes v0.1.0 only. Behaviour and output may change in later versi
 
 ## What it does
 
-Runs a read-only audit of a Shopify storefront and reports what AI shopping agents can see at the HTTP fetch layer (the layer non-rendering crawlers use): discovery files, crawler access rules, product-data completeness, JavaScript-off content, structured data, agent-connectivity endpoints, and policies.
+Runs a read-only audit of a Shopify storefront and reports what AI shopping agents can see at the HTTP fetch layer (the layer non-rendering crawlers use): which market variant was read, discovery files, crawler access rules, product-data completeness, JavaScript-off content, structured data, agent-connectivity endpoints, and policies.
 
 ## How to run it
 
@@ -30,6 +30,7 @@ Always use `--agent` when running on a user's behalf: it emits compact, findings
 - The `## What matters most` section is the single highest-priority issue; lead with it.
 - Respect the caveats. In particular: this measures the HTTP layer only (Googlebot and agentic browsers render JavaScript); product sampling is the newest-N window, not the whole catalogue; `info` findings (UA differences, bot-challenge, headless-shell signals) are diagnostics, not verdicts.
 - If the tool warns about a cross-host redirect or a likely headless shell, tell the user the real storefront may be on another domain and offer to re-run there.
+- The header states which **market variant** was audited (locale/currency) and how many others exist. Findings describe that market only. If the user shops a different market (e.g. they are in the UK but the bare domain served the US storefront), offer to re-run against their market's domain.
 
 ## What not to do
 

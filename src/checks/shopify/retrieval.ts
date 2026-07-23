@@ -11,13 +11,13 @@ interface CatalogProduct { title?: string; price_range?: { min?: { amount?: numb
  */
 export const retrievalCheck: Check = {
   id: 'retrieval-quality',
-  category: 'findable',
-  tags: ['actionable'],
+  category: 'actionable',
+  tags: ['findable'],
   title: 'Search retrieval quality (agent shopping test)',
   async run(ctx: CheckContext): Promise<Finding> {
     const now = ctx.now();
     const base = {
-      id: 'retrieval-quality', category: 'findable' as const, tags: ['actionable' as const],
+      id: 'retrieval-quality', category: 'actionable' as const, tags: ['findable' as const],
       title: 'Search retrieval quality (agent shopping test)',
       references: ['https://shopify.dev/docs/agents/catalog'], fetchedAt: now,
     };
