@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "storefront-agent-audit": {
+      "command": "npx",
+      "args": ["-y", "storefront-agent-audit-mcp"]
+    }
+  }
+}

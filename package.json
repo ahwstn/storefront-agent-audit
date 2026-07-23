@@ -17,7 +17,8 @@
   "author": "Alec Hewstone",
   "type": "module",
   "bin": {
-    "storefront-agent-audit": "./dist/cli.js"
+    "storefront-agent-audit": "./dist/cli.js",
+    "storefront-agent-audit-mcp": "./dist/mcp.js"
   },
   "files": [
     "dist",
@@ -28,7 +29,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "tsup src/cli.ts --format esm --clean --dts",
+    "build": "tsup src/cli.ts src/mcp.ts --format esm --clean --dts",
     "dev": "tsx src/cli.ts",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -36,6 +37,7 @@
     "prepublishOnly": "npm run lint && npm run test && npm run build"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "picocolors": "^1.1.1"
   },
   "devDependencies": {
