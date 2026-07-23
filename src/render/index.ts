@@ -25,7 +25,7 @@ export function renderTerminal(report: AuditReport, color = true): string {
   if (report.warnings.length) { lines.push(''); for (const w of report.warnings) lines.push(c.yellow(`  ⚠ ${w}`)); }
   lines.push('');
   for (const cat of report.categories) {
-    const badge = cat.status === 'fail' ? c.red(ICON.fail) : cat.status === 'warn' ? c.yellow(ICON.warn) : c.green(ICON.pass);
+    const badge = cat.status === 'fail' ? c.red(ICON.fail) : cat.status === 'warn' ? c.yellow(ICON.warn) : cat.status === 'info' ? c.dim(ICON.info) : c.green(ICON.pass);
     lines.push(`  ${badge} ${c.bold((CAT_LABEL[cat.category] ?? cat.category).padEnd(15))} ${statusWord(cat.status, c)}`);
     for (const f of report.findings.filter((x) => x.category === cat.category)) {
       lines.push(`      ${dot(f.status, c)} ${f.title}`);
@@ -72,6 +72,7 @@ export function renderAgent(report: AuditReport): string {
 function statusWord(status: Status, c: typeof pc): string {
   if (status === 'fail') return c.red('needs work');
   if (status === 'warn') return c.yellow('room to improve');
+  if (status === 'info') return c.dim('not assessed');
   return c.green('looking good');
 }
 function dot(status: Status, c: typeof pc): string {

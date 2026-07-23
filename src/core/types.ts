@@ -29,7 +29,8 @@ export interface Finding {
 
 export interface CategoryRollup {
   category: Category;
-  status: Exclude<Status, 'info'>;
+  /** 'info' means nothing in this category could be assessed (no pass/warn/fail). */
+  status: Status;
   counts: { pass: number; warn: number; fail: number; info: number };
 }
 

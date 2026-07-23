@@ -88,7 +88,11 @@ function buildRollups(findings: Finding[]): CategoryRollup[] {
     const inCat = findings.filter((f) => f.category === category);
     const counts = { pass: 0, warn: 0, fail: 0, info: 0 };
     for (const f of inCat) counts[f.status] += 1;
-    const status: CategoryRollup['status'] = counts.fail > 0 ? 'fail' : counts.warn > 0 ? 'warn' : 'pass';
+    // A category with no pass/warn/fail (only info, or nothing) was not assessable;
+    // reporting it as 'pass' would falsely claim "looking good".
+    const assessed = counts.pass + counts.warn + counts.fail;
+    const status: CategoryRollup['status'] =
+      counts.fail > 0 ? 'fail' : counts.warn > 0 ? 'warn' : assessed > 0 ? 'pass' : 'info';
     return { category, status, counts };
   }).filter((r) => r.counts.pass + r.counts.warn + r.counts.fail + r.counts.info > 0);
 }
