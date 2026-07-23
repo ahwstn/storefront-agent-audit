@@ -34,6 +34,11 @@ export async function runAudit(domain: string, opts: RunOptions = {}): Promise<A
   const warnings: string[] = [];
 
   const home = await fetchPath('/');
+  // A homepage that never answered means there is no store to audit; findings
+  // built on failed fetches would present a typo'd domain as a broken store.
+  if (home.status === 0) {
+    throw new Error(`could not reach https://${clean}/ (${home.error ?? 'no response'}). Check the domain and try again.`);
+  }
   const platform = detectShopify(home);
   if (looksLikeChallenge(home.body)) {
     warnings.push('The homepage returned a bot-challenge page; results may be unreliable, the store may block non-browser clients.');
