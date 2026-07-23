@@ -9,7 +9,7 @@ function html(jsonld: string, words = 300): string {
 
 function ctx(pages: Record<string, string>): CheckContext {
   return {
-    domain: 'x', base: '', sampleSize: 8, now: () => '2026-01-01T00:00:00Z',
+    domain: 'x', base: '', home: { url: '', status: 200, ok: true, contentType: 'text/html', body: '' }, sampleSize: 8, now: () => '2026-01-01T00:00:00Z',
     async fetch(path: string): Promise<FetchResult> {
       const body = path.includes('products.json')
         ? JSON.stringify({ products: Object.keys(pages).map((h) => ({ handle: h })) })

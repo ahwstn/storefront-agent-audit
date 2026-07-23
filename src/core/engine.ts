@@ -1,16 +1,18 @@
 import type { AuditReport, Category, CategoryRollup, Check, CheckContext, Finding, Status } from './types.js';
 import { SCOPE_CLAIM } from './types.js';
 import { createFetcher, looksLikeChallenge } from './fetcher.js';
+import { detectMarket } from './market.js';
 import { detectShopify } from '../checks/shopify/platform.js';
 import { discoveryCheck } from '../checks/universal/discovery.js';
 import { robotsCheck } from '../checks/universal/robots.js';
 import { pdpCheck } from '../checks/universal/pdp.js';
+import { marketCheck } from '../checks/universal/market.js';
 import { productsCheck } from '../checks/shopify/products.js';
 import { endpointsCheck } from '../checks/shopify/endpoints.js';
 import { policiesCheck } from '../checks/shopify/policies.js';
 import { retrievalCheck } from '../checks/shopify/retrieval.js';
 
-const UNIVERSAL: Check[] = [discoveryCheck, robotsCheck, pdpCheck];
+const UNIVERSAL: Check[] = [marketCheck, discoveryCheck, robotsCheck, pdpCheck];
 const SHOPIFY: Check[] = [productsCheck, endpointsCheck, policiesCheck, retrievalCheck];
 
 const CATEGORY_ORDER: Category[] = ['findable', 'understandable', 'trustworthy', 'actionable'];
@@ -41,7 +43,8 @@ export async function runAudit(domain: string, opts: RunOptions = {}): Promise<A
     warnings.push(`The homepage redirected to ${finalHost}. This audit stayed on ${clean} as requested; the customer-facing storefront may live elsewhere.`);
   }
 
-  const ctx: CheckContext = { domain: clean, base, fetch: fetchPath, sampleSize: opts.sampleSize ?? 8, now };
+  const market = detectMarket(home);
+  const ctx: CheckContext = { domain: clean, base, fetch: fetchPath, home, sampleSize: opts.sampleSize ?? 8, now };
 
   const active: Check[] = platform.detected === 'shopify'
     ? [...UNIVERSAL, ...SHOPIFY]
@@ -77,6 +80,11 @@ export async function runAudit(domain: string, opts: RunOptions = {}): Promise<A
     finishedAt: now(),
     scope: SCOPE_CLAIM,
     platform,
+    market: {
+      ...(market.locale ? { locale: market.locale } : {}),
+      ...(market.currency ? { currency: market.currency } : {}),
+      alternateCount: market.alternates.length,
+    },
     warnings,
     summary: buildSummary(findings),
     categories: buildRollups(findings),

@@ -5,7 +5,7 @@ import type { CheckContext, FetchResult, Finding } from '../src/core/types.js';
 function ctxWith(robots: string): CheckContext {
   const res: FetchResult = { url: '', status: 200, ok: true, contentType: 'text/plain', body: robots };
   return {
-    domain: 'x', base: '', sampleSize: 8, now: () => '2026-01-01T00:00:00Z',
+    domain: 'x', base: '', home: { url: '', status: 200, ok: true, contentType: 'text/html', body: '' }, sampleSize: 8, now: () => '2026-01-01T00:00:00Z',
     fetch: async () => res,
   };
 }

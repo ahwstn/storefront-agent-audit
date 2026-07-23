@@ -1,7 +1,7 @@
 import type { Check, CheckContext, Finding } from '../../core/types.js';
 
 interface ShopifyProduct { title?: string; product_type?: string; variants?: { price?: string }[] }
-interface CatalogProduct { title?: string; price_range?: { min?: { amount?: number } } }
+interface CatalogProduct { title?: string; price_range?: { min?: { amount?: number; currency?: string } } }
 
 /**
  * Retrieval quality: behave like an AI shopping agent. Derive a realistic query from
@@ -38,13 +38,17 @@ export const retrievalCheck: Check = {
       return { ...base, status: 'info', narrative: 'Could not derive a representative query from this catalogue; retrieval quality not tested.', evidence: { category, samplePrices: prices.length } };
     }
     const ceiling = niceCeiling(prices[Math.floor(prices.length / 3)] ?? prices[0]!);
-    const query = `${category} under ${ceiling} pounds`;
+    const ceilingMinor = ceiling * 100;
 
-    // Run the query through the store's own MCP, exactly as an AI shopping agent would.
+    // Query the store's own catalogue exactly as a Shopify-native agent does: a natural
+    // category query PLUS the documented STRUCTURED price filter (minor units), not a
+    // free-text "under X" (which the endpoint does not parse). This makes any failure the
+    // endpoint's, not ours.
     const resp = await ctx.fetch('/api/mcp', {
       method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'search_catalog', arguments: { query } } }),
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'search_catalog', arguments: { query: category, context: { intent: 'shopping' }, filters: { price: { max: ceilingMinor } } } } }),
     });
+    const query = `${category} (structured filter: max ${ceiling})`;
     const returned = parseCatalogResults(resp.body);
     if (returned === null) {
       return { ...base, status: 'info', narrative: `The store's MCP search did not return usable results for "${query}", so retrieval quality could not be graded (the endpoint may be ineligible or gated).`, evidence: { query, endpoint: '/api/mcp' } };
@@ -55,8 +59,10 @@ export const retrievalCheck: Check = {
 
     // Deterministic grading on the price constraint only. Category relevance needs
     // semantic judgement a string match cannot fairly provide (a "Cruiser" is a shoe),
-    // so we do not fake it; the price constraint is objective and fair.
-    const ceilingMinor = ceiling * 100;
+    // so we do not fake it; the price constraint is objective and fair. Grade in the
+    // currency the endpoint actually returns (may differ from the storefront's).
+    const cur = firstCurrency(returned);
+    const sym = symbolFor(cur);
     const withPrice = returned.filter((p) => typeof p.price_range?.min?.amount === 'number');
     if (withPrice.length === 0) {
       return { ...base, status: 'info', narrative: `The store's search returned results for "${query}" but without prices to grade against, so retrieval quality could not be assessed.`, evidence: { query, returned: returned.length } };
@@ -66,20 +72,20 @@ export const retrievalCheck: Check = {
     const overBudget = withPrice
       .filter((p) => (p.price_range!.min!.amount as number) > ceilingMinor)
       .slice(0, 3)
-      .map((p) => `${(p.title ?? '').slice(0, 40)} (£${((p.price_range!.min!.amount as number) / 100).toFixed(0)})`);
+      .map((p) => `${(p.title ?? '').slice(0, 40)} (${sym}${((p.price_range!.min!.amount as number) / 100).toFixed(0)})`);
 
     const status = priceAdherence < 0.4 ? 'fail' : priceAdherence < 0.7 ? 'warn' : 'pass';
     const narrative = priceAdherence < 0.7
-      ? `You have products under £${ceiling}, but when I searched your store's own agent endpoint for "${query}", only ${Math.round(priceAdherence * 100)}% of the results actually came in under budget.` +
+      ? `Using the documented structured price filter (max ${sym}${ceiling}) on your store's own agent search endpoint, only ${Math.round(priceAdherence * 100)}% of the results actually came back under that ceiling.` +
         (overBudget.length ? ` It surfaced pricier items like ${overBudget.join(', ')}.` : '') +
-        ' A shopper asking an AI assistant for something affordable would be shown things they did not ask for.'
-      : `I searched your store's own agent endpoint for "${query}" and ${Math.round(priceAdherence * 100)}% of the results honoured the budget. An agent shopping your store on price gets sensible answers.`;
+        ' An agent that trusts the endpoint would show a budget shopper items they filtered out.'
+      : `Using the documented structured price filter (max ${sym}${ceiling}) on your store's own agent search endpoint, ${Math.round(priceAdherence * 100)}% of results honoured the ceiling. The catalogue search respects budget filters.`;
 
     return {
       ...base, status, narrative,
-      ...(priceAdherence < 0.7 ? { remediation: 'Budget queries rely on clean, structured pricing and product attributes in your catalogue; enriching these helps the search return affordable matches.' } : {}),
-      evidence: { query, ceilingPounds: ceiling, returned: returned.length, pricedResults: withPrice.length, underBudget: underCeiling, priceAdherence: round(priceAdherence), overBudgetExamples: overBudget },
-      caveat: 'Measures price-constraint adherence only (not semantic relevance). Search runs on the store\'s own MCP endpoint; a low score can reflect either thin product data or the catalogue search not parsing budget constraints, both of which shape what an agent retrieves.',
+      ...(priceAdherence < 0.7 ? { remediation: 'The endpoint ignored a structured price filter; check that variant pricing and taxonomy attributes are populated so the catalogue search can filter on them.' } : {}),
+      evidence: { query, currency: cur, ceiling, returned: returned.length, pricedResults: withPrice.length, underBudget: underCeiling, priceAdherence: round(priceAdherence), overBudgetExamples: overBudget },
+      caveat: 'Tests the Shopify-native MCP catalogue path with a documented structured price filter. Today\'s consumer assistants (ChatGPT, Perplexity) also crawl the storefront and product feeds, a different path this check does not cover. Returned currency may differ from the market a local shopper sees.',
     };
   },
 };
@@ -112,3 +118,10 @@ function parseCatalogResults(body: string): CatalogProduct[] | null {
   } catch { return null; }
 }
 function round(n: number): number { return Math.round(n * 100) / 100; }
+function firstCurrency(products: CatalogProduct[]): string {
+  for (const p of products) { const c = (p.price_range?.min as { currency?: string } | undefined)?.currency; if (c) return c; }
+  return '';
+}
+function symbolFor(cur: string): string {
+  return cur === 'GBP' ? '£' : cur === 'USD' ? '$' : cur === 'EUR' ? '€' : cur ? `${cur} ` : '';
+}

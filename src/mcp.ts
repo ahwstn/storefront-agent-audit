@@ -38,6 +38,11 @@ server.registerTool(
     outputSchema: {
       domain: z.string(),
       platform: z.string(),
+      market: z.object({
+        locale: z.string().optional(),
+        currency: z.string().optional(),
+        alternateCount: z.number(),
+      }).describe('Which market variant was audited; multi-market stores differ per market.'),
       scope: z.string(),
       headline: z.string(),
       topActions: z.array(z.string()),
@@ -66,6 +71,7 @@ function lean(report: AuditReport) {
   return {
     domain: report.domain,
     platform: report.platform.detected,
+    market: report.market,
     scope: report.scope,
     headline: report.summary.headline,
     topActions: report.summary.topActions,

@@ -9,7 +9,7 @@ const products = [40, 50, 60, 70, 80, 90].map((p, i) => ({
 
 function ctx(mcpProducts: { title: string; price: number }[]): CheckContext {
   return {
-    domain: 'x', base: '', sampleSize: 8, now: () => '2026-01-01T00:00:00Z',
+    domain: 'x', base: '', home: { url: '', status: 200, ok: true, contentType: 'text/html', body: '' }, sampleSize: 8, now: () => '2026-01-01T00:00:00Z',
     async fetch(path: string): Promise<FetchResult> {
       if (path.includes('products.json')) {
         return { url: path, status: 200, ok: true, contentType: 'application/json', body: JSON.stringify({ products }) };
@@ -42,7 +42,7 @@ describe('retrieval-quality (price-constraint adherence)', () => {
 
   it('reports info when the MCP endpoint returns nothing usable', async () => {
     const c: CheckContext = {
-      domain: 'x', base: '', sampleSize: 8, now: () => '2026-01-01T00:00:00Z',
+      domain: 'x', base: '', home: { url: '', status: 200, ok: true, contentType: 'text/html', body: '' }, sampleSize: 8, now: () => '2026-01-01T00:00:00Z',
       async fetch(path: string): Promise<FetchResult> {
         const body = path.includes('products.json') ? JSON.stringify({ products }) : '{"jsonrpc":"2.0","id":1,"error":{"code":-32001}}';
         return { url: path, status: 200, ok: true, contentType: 'application/json', body };

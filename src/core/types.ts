@@ -43,6 +43,12 @@ export interface AuditReport {
   /** The scope claim, stated in every rendering. */
   scope: string;
   platform: { detected: 'shopify' | 'unknown'; evidence: string };
+  /**
+   * Which market variant this audit actually read. Multi-market stores serve
+   * different prices, stock and language per market; the report must say which
+   * one it graded rather than implying the store has only one.
+   */
+  market: { locale?: string; currency?: string; alternateCount: number };
   warnings: string[];
   summary: {
     headline: string;
@@ -66,6 +72,8 @@ export interface CheckContext {
   domain: string;
   base: string;
   fetch: (path: string, init?: { ua?: 'browser' | 'gptbot'; method?: string; body?: string; headers?: Record<string, string> }) => Promise<FetchResult>;
+  /** The homepage as already fetched by the engine, so checks need not refetch it. */
+  home: FetchResult;
   sampleSize: number;
   now: () => string;
 }

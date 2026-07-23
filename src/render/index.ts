@@ -22,6 +22,8 @@ export function renderTerminal(report: AuditReport, color = true): string {
   const lines: string[] = [];
   lines.push(`${c.bold('storefront-agent-audit')} ${report.tool.version} · ${c.bold(report.domain)} · ${report.startedAt.slice(0, 10)}`);
   lines.push(c.dim(report.scope));
+  const mkt = marketLine(report);
+  if (mkt) lines.push(c.dim(mkt));
   if (report.warnings.length) { lines.push(''); for (const w of report.warnings) lines.push(c.yellow(`  ⚠ ${w}`)); }
   lines.push('');
   for (const cat of report.categories) {
@@ -48,6 +50,8 @@ export function renderAgent(report: AuditReport): string {
   const out: string[] = [];
   out.push(`# Agent-visibility audit: ${report.domain} (${report.startedAt.slice(0, 10)})`);
   out.push(`Scope: ${report.scope}`);
+  const mkt = marketLine(report);
+  if (mkt) out.push(mkt);
   if (report.platform.detected !== 'shopify') out.push(`Platform: not detected as Shopify (${report.platform.evidence}); Shopify-specific checks skipped.`);
   if (report.warnings.length) out.push(`Warnings: ${report.warnings.join(' ')}`);
   out.push('');
@@ -67,6 +71,17 @@ export function renderAgent(report: AuditReport): string {
   out.push('- Ask me to explain any finding, or to draft the fixes in priority order.');
   out.push('- Findings reflect the HTTP layer on the date shown; re-run to confirm changes.');
   return out.join('\n');
+}
+
+function marketLine(report: AuditReport): string | null {
+  const m = report.market;
+  if (!m) return null;
+  const label = m.locale && m.currency ? `${m.locale} / ${m.currency}` : m.locale ?? m.currency ?? null;
+  if (!label && m.alternateCount === 0) return null;
+  const audited = label ? `Audited market: ${label}` : 'Audited market: undeclared';
+  return m.alternateCount > 0
+    ? `${audited} · ${m.alternateCount} other market variant${m.alternateCount === 1 ? '' : 's'} exist; findings describe this market only`
+    : audited;
 }
 
 function statusWord(status: Status, c: typeof pc): string {
